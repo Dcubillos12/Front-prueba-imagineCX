@@ -1,4 +1,5 @@
-# Prueba Tecnica ImagineCX
+# Prueba Tecnica ImagineCX ![](https://imaginecx.co/wp-content/uploads/2023/01/logo-02.png)
+
 
 Una aplicación de administración de contactos que permite agregar, editar, buscar y eliminar contactos. Construida en React, utiliza Vite para un desarrollo rápido y optimizado. Esta guía proporciona todos los pasos necesarios para instalar, usar y entender la arquitectura del proyecto.
 
@@ -10,14 +11,14 @@ Una aplicación de administración de contactos que permite agregar, editar, bus
 4. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
 5. [Requisitos Previos](#requisitos-previos)
 6. [Instalación](#instalación)
-7. [Uso](#uso)
-8. [Funciones de la Aplicación](#funciones-de-la-aplicación)
-9. [Contribuir](#contribuir)
-10. [Licencia](#licencia)
+7. [Uso](#uso)  
+
 
 ## Descripción del Proyecto
 
-Esta aplicación permite gestionar una lista de contactos almacenados en IndexedDB mediante Dexie.js. El usuario puede:
+Esta aplicación permite gestionar una lista de contactos desde la API http://imaginecx--tst2.custhelp.com/services/rest/connect/v1.3/contacts. 
+
+##El usuario puede:
 - Crear nuevos contactos
 - Editar contactos existentes
 - Eliminar contactos
@@ -29,7 +30,6 @@ Es una solución eficaz para organizar y acceder a los datos de contactos de for
 
 - **React**: Para construir la interfaz de usuario.
 - **Vite**: Un entorno de desarrollo rápido y ligero.
-- **Dexie.js**: Para la gestión de datos en IndexedDB.
 - **Bootstrap**: Para el diseño y estilo de la interfaz de usuario.
 
 ## Beneficios de Vite
@@ -46,27 +46,35 @@ Vite es una herramienta de desarrollo rápida y eficiente que se diferencia de W
 ## Arquitectura del Proyecto
 
 El proyecto sigue una estructura modular, con componentes reutilizables y organizados para facilitar el mantenimiento:
+```plaintext
+src/
+├── api/           # Lógica para interactuar con el API y los servicios
+├── components/    # Componentes de React, organizados según funcionalidades
+├── styles/        # Archivos de estilos globales y específicos
+├── App.tsx        # Componente raíz de la aplicación
+├── main.tsx       # Punto de entrada de Vite
+└── index.html     # Archivo principal HTML
 
-src/ ├── api/ # Lógica para interacciones con la base de datos (Dexie.js) ├── components/ # Componentes de React, organizados según funcionalidades ├── db/ # Configuración de la base de datos (IndexedDB con Dexie.js) ├── styles/ # Archivos de estilos globales y específicos ├── App.tsx # Componente raíz de la aplicación ├── main.tsx # Punto de entrada de Vite └── index.html # Archivo principal HTML
-
+```
 
 
 ### Componentes Principales
-- **NewContact**: Formulario para crear nuevos contactos.
+
 - **SearchFilters**: Componentes de filtro y búsqueda de contactos.
+- **NewContact**: Formulario para crear nuevos contactos.
 - **AllApp**: Componente principal que gestiona la lógica de creación y visualización de contactos.
 
 ## Requisitos Previos
 
 - **Node.js** (>= 14.0.0)
-- **npm** o **yarn**
+- **npm**
 
 Para verificar la instalación de Node y npm:
 ```bash
 node -v
 npm -v
 
-
+```
 ## Instalación
 
 1. **Clona el repositorio**:
@@ -77,13 +85,9 @@ npm -v
 ```Instala las dependencias:
 npm install
 
-
-
-
 ```
 
-##
-Uso
+## Uso
 La aplicación permite gestionar contactos mediante varias funcionalidades:
 
 Crear Contacto: Presiona el botón "Crear Contacto", rellena el formulario y guarda. El nuevo contacto se agregará a la lista.
