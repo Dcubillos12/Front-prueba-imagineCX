@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = "http://localhost:3000/contacts";
+const api = "/api/contacts";
 const USERNAME = "ICXCandidate";
 const PASSWORD = "Welcome2024";
 
@@ -9,6 +9,10 @@ const apiClient = axios.create({
   auth: {
     username: USERNAME,
     password: PASSWORD,
+  },
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
   },
 });
 

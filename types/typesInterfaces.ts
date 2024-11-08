@@ -9,3 +9,11 @@ export interface Contact {
 export interface ContactList {
   items: Contact[];
 }
+
+export interface Contacts {
+  id?: number;
+  name: string;
+  city: string;
+  emails: string;
+  phones: string;
+}

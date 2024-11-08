@@ -8,9 +8,10 @@ export default defineConfig({
     proxy: {
       "/api": {
         target:
-          "http://localhost:3000",
+          "https://imaginecx--tst2.custhelp.com/services/rest/connect/v1.3/",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
+        secure: false,  
       },
     },
   },
