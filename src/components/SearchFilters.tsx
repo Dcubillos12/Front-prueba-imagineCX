@@ -1,72 +1,94 @@
 import { useEffect, useState } from "react";
 import { searchContact } from "../api/contactService";
+import EditContact from "./EditContact";
+import { ContactSearch } from "../../types/typesInterfaces";
+import apiClient from "../api/apiConfig";
 
 const SearchFilters = () => {
-  const [contact, setContact] = useState<any[]>([]);
+  const [contact, setContact] = useState<ContactSearch[]>([]);
   const [value, setValue] = useState("");
   const [field, setField] = useState("address.city");
-  const [contactoEditado, setContactoEditado] = useState<any | null>(null);
+  const [updateContact, setUpdateContact] = useState<ContactSearch | null>(
+    null
+  );
+  useEffect(() => {
+    // Cargar contactos desde el localStorage al inicio, como respaldo inicial
+    const storedContacts = JSON.parse(localStorage.getItem("contacts") || "[]");
+    setContact(storedContacts);
+  }, []);
 
+  // * uso esclusivo de la barra de busqueda y de los filtros y el respaldo
   useEffect(() => {
     const fetchData = async () => {
       if (value) {
         // Ejecuta la búsqueda solo si hay un valor
         try {
           const data = await searchContact(field, value);
-          // Comprueba que `data.items` sea un array antes de actualizar el estado
           setContact(data.items);
-          // Llama a `result` para enviar los datos al componente padre si está definido
         } catch (error) {
           console.error("Error al obtener contactos:", error);
-          setContact([]);
+          setContact([]); // !Reinicia la lista de contactos si ocurre un error
         }
       }
     };
-    fetchData();
+    fetchData(); //Utilizando la recursion
   }, [field, value]);
-  const hadleClean = () => {
+
+  // * uso esclusivo del boton de limpieza
+  const clearFilters = () => {
     setContact([]);
     setValue("");
   };
 
-  // Función para editar un contacto existente
-  const editarContactoExistente = (contacto: any) => {
-    // Actualiza el estado con el contacto seleccionado para editar
-    setContactoEditado(contacto);
+  // * Función para editar un contacto existente
+  const editExistingContact = (contactToEdit: ContactSearch) => {
+    setUpdateContact(contactToEdit);
   };
-
-  // Función para guardar los cambios después de editar
-  const guardarContactoEditado = async (contactoEditado: any) => {
+  const saveUpdatedContact = async (updatedContact: ContactSearch) => {
     try {
-      // Aquí podrías hacer una llamada a la API para actualizar el contacto, por ejemplo:
-      // await axios.put(`http://example.com/contacts/${contactoEditado.id}`, contactoEditado);
-
-      // Actualiza el estado local de los contactos con el nuevo contacto editado
-      const contactosActualizados = contact.map((item) =>
-        item.id === contactoEditado.id ? contactoEditado : item
+      // Llamada a la API para actualizar el contacto
+      const response = await apiClient.put(
+        `/contacts/${updatedContact.id}`,
+        updatedContact
       );
-      setContact(contactosActualizados);
-      setContactoEditado(null); // Limpiar el estado de edición
-      console.log("Contacto editado:", contactoEditado); // Para depuración
+
+      if (response.status === 200) {
+        // Actualiza el contacto en el estado local si la respuesta es exitosa
+        const updatedContacts = contact.map((item) =>
+          item.id === updatedContact.id ? updatedContact : item
+        );
+        setContact(updatedContacts);
+      }
     } catch (error) {
       console.error("Error al guardar el contacto editado:", error);
+
+      // En caso de error, guardar la última modificación en el localStorage
+      const updatedContacts = contact.map((item) =>
+        item.id === updatedContact.id ? updatedContact : item
+      );
+      localStorage.setItem("contacts", JSON.stringify(updatedContacts));
+      setContact(updatedContacts);
     }
+    setUpdateContact(null); // Limpiar el estado de edición
   };
 
-  // Función para eliminar un contacto
-  const eliminarContacto = async (id: number) => {
+  // * Función para eliminar un contacto y del localStorage
+  const deleteContact = async (id: number) => {
     try {
-      // Eliminar el contacto del estado
-      const contactosActualizados = contact.filter((item) => item.id !== id);
-      setContact(contactosActualizados);
+      const response = await apiClient.delete(`/contacts/${id}`);
 
-      // Aquí puedes agregar la llamada a la API para eliminar el contacto del servidor
-      // await axios.delete(`http://example.com/contacts/${id}`);
-
-      // Guardar los contactos actualizados en localStorage
-      localStorage.setItem("contactos", JSON.stringify(contactosActualizados));
+      if (response.status === 200) {
+        // Actualiza el estado local eliminando el contacto
+        const updatedContacts = contact.filter((item) => item.id !== id);
+        setContact(updatedContacts);
+      }
     } catch (error) {
       console.error("Error al eliminar contacto:", error);
+
+      // Respaldar en localStorage si falla la eliminación en la API
+      const updatedContacts = contact.filter((item) => item.id !== id);
+      localStorage.setItem("contacts", JSON.stringify(updatedContacts));
+      setContact(updatedContacts);
     }
   };
 
@@ -97,122 +119,69 @@ const SearchFilters = () => {
           aria-describedby="basic-addon2"
         />
       </div>
-      <div>
-        <button onClick={hadleClean}>Clean</button>
-      </div>
-
-      <table className="table-responsive">
-        <thead>
-          <tr>
-            {" "}
-            {/* Fila de encabezado */}
-            <th>Nombre</th>
-            <th>Fecha de creación</th>
-            <th>Editar</th>
-          </tr>
-        </thead>
-        <tbody>
-          {contact.length > 0 ? (
-            contact
-              .filter((item: any) => item.lookupName) // Filtra solo los elementos que tienen lookupName
-              .map((item: any) => (
-                <tr key={item.id}>
-                  {" "}
-                  {/* Fila de datos */}
-                  <td className="black">
-                    <strong>{item.lookupName}</strong>
-                  </td>{" "}
-                  {/* Columna de nombre */}
-                  <td>{item.createdTime || "Fecha no disponible"}</td>{" "}
-                  {/* Columna de fecha de creación */}
-                  <td>
-                    <div className="btn-group">
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary bi bi-trash"
-                        onClick={() => eliminarContacto(item.id)}
-                      ></button>
-                      <button
-                        onClick={() => editarContactoExistente(item)}
-                        type="button"
-                        className="btn btn-outline-secondary bi bi-pencil-square"
-                      ></button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-          ) : (
+      <button
+        onClick={clearFilters}
+        aria-label="Limpiar filtros"
+        className="btn btn-warning"
+      >
+        Limpiar
+      </button>
+      <div className="mt-3 border border-light border-4 rounded-4 p-2">
+        <table className="table-responsive table table-dark mt-2">
+          <thead>
             <tr>
-              {" "}
-              {/* Fila si no se encuentran contactos */}
-              <td colSpan={3}>No se encontraron contactos</td>{" "}
-              {/* Colspan para que ocupe toda la fila */}
+              <th scope="col">Nombre</th>
+              <th scope="col">Actualizacion</th>
+              <th scope="col">Editar</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {contact.length > 0 ? (
+              // * Sia hay contactos se ejecuta el renderizado de la tabla
+              contact
+                .filter((item: any) => item.lookupName) // Filtra solo los elementos que tienen lookupName garantizando limpiar los vacios en la tabla
+                .map((item: any) => (
+                  <tr key={item.id}>
+                    {" "}
+                    {/* Fila de datos */}
+                    <td className="black">
+                      <strong>{item.lookupName}</strong>
+                    </td>{" "}
+                    {/* Columna de nombre */}
+                    <td>{item.updatedTime || "Fecha no disponible"}</td>{" "}
+                    {/* Columna de fecha de actualización */}
+                    <td>
+                      <div className="btn-group">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary bi bi-trash"
+                          onClick={() => deleteContact(item.id)}
+                        ></button>
+                        <button
+                          onClick={() => editExistingContact(item)}
+                          type="button"
+                          className="btn btn-outline-secondary bi bi-pencil-square"
+                        ></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+            ) : (
+              <tr>
+                <td colSpan={3}>No se encontraron contactos</td>{" "}
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
       <hr />
-      {/* Aquí puedes renderizar el formulario para editar el contacto si `contactoEditado` no es null */}
-      {contactoEditado && (
-        <div className="mt-4">
-          <h2>Editar Contacto</h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              guardarContactoEditado(contactoEditado); // Guardar los cambios
-            }}
-          >
-            <div>
-              <label>Nombre:</label>
-              <input
-                className="form-control"
-                type="text"
-                value={contactoEditado.lookupName}
-                onChange={(e) =>
-                  setContactoEditado({
-                    ...contactoEditado,
-                    lookupName: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label>Correo:</label>
-              <input
-                className="form-control"
-                type="email"
-                value={contactoEditado.emails?.address || ""}
-                onChange={(e) =>
-                  setContactoEditado({
-                    ...contactoEditado,
-                    emails: {
-                      ...contactoEditado.emails,
-                      address: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label>Teléfono:</label>
-              <input
-                className="form-control"
-                type="text"
-                value={contactoEditado.phones?.number || ""}
-                onChange={(e) =>
-                  setContactoEditado({
-                    ...contactoEditado,
-                    phones: {
-                      ...contactoEditado.phones,
-                      number: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-            <button type="submit">Guardar Cambios</button>
-          </form>
-        </div>
+      {/* Aquí puedes renderizar el formulario para editar el contacto si `updateContact` no es null */}
+      {updateContact && (
+        <EditContact
+          updateContact={updateContact}
+          setUpdateContact={setUpdateContact}
+          saveUpdatedContact={saveUpdatedContact}
+        />
       )}
     </>
   );

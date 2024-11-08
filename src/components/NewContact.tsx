@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Contacts } from "../../types/typesInterfaces";
-import { db } from "../../db";
+import { saveContactsToLocalStorage } from "../api/contactService";
 
 const NewContact = () => {
   const [contact, setContact] = useState<Contacts>({
-    id: 0,
+    id: Date.now(),
     name: "",
     phones: "",
     emails: "",
@@ -13,6 +13,16 @@ const NewContact = () => {
   const [contactos, setContactos] = useState<Contacts[]>([]); // Lista de contactos
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Cargar contactos desde localStorage al iniciar el componente
+  useEffect(() => {
+    const storedContacts = localStorage.getItem("contacts");
+    if (storedContacts) {
+      setContactos(JSON.parse(storedContacts));
+    }
+  }, []);
+
+  // Guardar la lista de contactos en localStorage
 
   // Manejar cambios en el formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,35 +33,24 @@ const NewContact = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      // Eliminar el 'id' antes de agregar el contacto para asegurarse de que Dexie lo asigne automáticamente
-      const { id: existingId, ...contactWithoutId } = contact;
+    // Agregar nuevo contacto a la lista
+    const newContacts = [...contactos, { ...contact, id: Date.now() }];
+    setContactos(newContacts);
+    saveContactsToLocalStorage(newContacts); // Guardar en localStorage
 
-      // Agregar contacto en Dexie
-      const newId = await db.contacts.add(contactWithoutId);
+    // Restablecer el formulario
+    setContact({
+      id: Date.now(),
+      name: "",
+      phones: "",
+      emails: "",
+      city: "",
+    });
 
-      alert("Nuevo contacto agregado con id:", newId);
-
-      // Actualizar el estado con el contacto recién creado
-      setContactos([...contactos, { ...contactWithoutId, id: newId }]);
-
-      // Restablecer el formulario
-      setContact({
-        id: 0,
-        name: "",
-        phones: "",
-        emails: "",
-        city: "",
-      });
-
-      setCargando(false);
-    } catch (error) {
-      console.error("Error al agregar contacto:", error);
-      setError("Hubo un problema al guardar el contacto.");
-    }
+    alert("Contacto creado con éxito");
   };
 
   return (
