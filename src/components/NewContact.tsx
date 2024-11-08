@@ -35,7 +35,8 @@ const NewContact = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setCargando(true);
+    setError(null);
     // Agregar nuevo contacto a la lista
     const newContacts = [...contactos, { ...contact, id: Date.now() }];
     setContactos(newContacts);

@@ -126,7 +126,7 @@ const SearchFilters = () => {
       >
         Limpiar
       </button>
-      <div className="mt-3 border border-light border-4 rounded-4 p-2">
+      <div className="mt-3 border border-light border-4 rounded-4">
         <table className="table-responsive table table-dark mt-2">
           <thead>
             <tr>
