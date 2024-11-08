@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = "/api/contacts";
+const api = import.meta.env.VITE_API_URL || "/api/contacts";
 const USERNAME = "ICXCandidate";
 const PASSWORD = "Welcome2024";
 
